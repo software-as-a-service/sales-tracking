@@ -1,0 +1,125 @@
+<section>
+    <div id=toolbar__ID>
+        <a id=back__ID>Back</a>
+        <a id=new__ID>New</a>
+        <a id=save__ID>Save</a>
+        <select id=YY__ID type=select></select>
+        <a id=query__ID >Query</a>
+        <a id=export__ID >Export</a>
+    	<a id=pv__ID >Print Version</a>
+    	<span class=tab__ID></span>Sales total monthly
+        <span id=elapsed__ID style='float:right'></span>
+    </div>
+    <div id=pvdiv__ID>
+        <div id=excel_container__ID style='font-size:10pt;font-family: Helvetica, Arial, sans-serif;'>
+            <div id=excel__ID style='background-color:#fff'></div>
+        </div>
+    </div>
+</section>
+<script>
+    function F__ID(){
+        //-------------------------------------
+        VmInclude:__BASE__/vmiis/Common-Code/frame/excel_v2.js
+        VmInclude:__BASE__/vmiis/Common-Code/style/ease-in-out.js
+        //-------------------------------------
+        _fields="Year,Month,Amount,Update,Update_Date,Updated_by";
+        _fields+=",Submit Date|DateTime,Submitted by|Author";
+        //-------------------------------------
+        _table_process=function(table){
+            table.Update_Date={readOnly:true};
+            table.Updated_by={readOnly:true};
+            table.Amount={readOnly:true,type:'numeric',format:'$ 0,0.00'};
+            table.Year={type:'dropdown',trimDropdown:false,source:function (query, process){
+                var items=[];
+                var y=new Date().getFullYear();
+                for(var i=0;i<10;i++){
+                	items.push(y-i);
+            	}
+                process(items);
+            }};
+            table.Month={type:'dropdown',trimDropdown:false,source:function (query, process){
+                var items=['January','February','March','April','May','June','July','August','September','October','November','December'];
+                process(items);
+            }};
+            table.Update={renderer:function(instance, td, row, col, prop, value, cellProperties){
+                $(td).html("<u style='cursor:pointer;'>Update</u>");
+                $(td).find('u').on('click',function(){  update_amount(); })
+                return td;
+            }};
+            //-------------------------------------
+        }
+        //-------------------------------------
+        var update_amount=function(){
+            var selection = $("#excel__ID").handsontable('getSelected');
+            if(selection!==undefined){
+                var row=selection[0];
+                var old_value=_records[row].Amount;
+                var year=_records[row].Year;
+                var month=_records[row].Month;
+                if(year!==undefined && month!==undefined){
+                    var items=['January','February','March','April','May','June','July','August','September','October','November','December'];
+                    month=(items.indexOf(month)+1).toString();
+                    var pid=$vm.module_list['sales'][0];
+                    var sql="\
+                        with tb as (select Amount=V1 from [TABLE-"+pid+"] where DatePart(yy,DT1)=@I1 and DatePart(mm,DT1)=@I2) \
+                        select Amount=Sum(Amount) from tb\
+                    ";
+                    var req={cmd:'query_records',sql:sql,i1:year,i2:month}
+                    $VmAPI.request({data:req,callback:function(res){
+                        if(res.records.length>0){
+                            var new_value=res.records[0].Amount;
+                            if(old_value!==new_value){
+                                _records[row].Amount=new_value;
+                                _records[row].Update_Date=$vm.date_to_string_dmy(new Date());
+                                _records[row].Updated_by=$vm.user;
+                                $('#excel__ID').handsontable('render');
+                                $('#save__ID').css('background','#E00');
+                            }
+                            else{
+                                alert('The new amount is same as old one. No update.')
+                            }
+                        }
+                    }})
+                }
+            }
+        }
+        //-------------------------------------
+        //number dropdown
+        var $List=$('#YY__ID');
+        var y=new Date().getFullYear();
+        for(var i=0;i<7;i++){
+        	$List.append(  $('<option></option>').val(y-i).html(y-i)  );
+        }
+        $List.val(y);
+        $List.on('change',function(){  _set_req(); _request_data(); });
+        //---------------------------------------------
+        $('#D__ID').on('load',function(){  _set_req(); _request_data();  })
+        //-------------------------------------
+        _new_pre_data_process=function(){
+            $("#excel__ID").handsontable("setDataAtCell", 0, 0, $('#YY__ID').val());
+            $("#excel__ID").handsontable("setDataAtCell", 0, 2, 0);
+        }
+        //-------------------------------------
+        _before_submit=function(record,dbv){
+            dbv.S1=$vm.date_to_string_dmy(new Date());
+            dbv.S2=$vm.user;
+            dbv.V1=record.Year;
+            dbv.V2=['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(record.Month)+1;
+            dbv.V3=record.Amount;
+            return true;
+        };
+        //-------------------------------------
+        _set_req=_set_req_export=function(){
+            var sql="with tb as (select Information,V2,ID,DateTime,Author from [TABLE-"+_db_pid+"] where V1=@I1) ";
+            sql+="select Information,ID,DateTime,Author from tb order by V2";
+            _req={cmd:'query_records',sql:sql,i1:$('#YY__ID').val()}
+        }
+        //-------------------------------------
+    }
+</script>
+<style>
+    VmInclude:__BASE__/vmiis/Common-Code/style/default.css
+    #D__ID .handsontable .htDimmed {
+       background-color: #F8F8F8 !important;
+    }
+</style>

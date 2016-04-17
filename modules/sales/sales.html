@@ -1,0 +1,62 @@
+<section>
+    VmInclude:__BASE__/vmiis/Common-Code/frame/excel_v2.html
+</section>
+<script>
+    function F__ID(){
+        //-------------------------------------
+        VmInclude:__BASE__/vmiis/Common-Code/frame/excel_v2.js
+        VmInclude:__BASE__/vmiis/Common-Code/style/ease-in-out.js
+        //-------------------------------------
+        _fields="Order_Date,Region,Rep,Item,Units,Unit_Cost,Total";
+        _fields+=",Submit Date|DateTime,Submitted by|Author";
+        //-------------------------------------
+        _table_process=function(table){
+            table.Order_Date={type: 'date',format: 'DD/MM/YYYY',correctFormat:true};
+            table.Units={type: 'numeric',format:'0,0'};
+            table.Unit_Cost={type: 'numeric',format:'$ 0,0.00'};
+            table.Total={readOnly:true,type:'numeric',format:'$ 0,0.00'};
+            table.Region={type:'dropdown',trimDropdown:false,source:function (query, process){
+                var pid=$vm.module_list['region'][0];
+                var sql="with tb as (select distinct Item=S1 from [TABLE-"+pid+"]) select top 10 Item from tb where Item like '%'+@S1+'%' ";
+                $vm.read_record_auto({query:query,process:process,sql:sql,minLength:0});
+            }};
+            table.Item={type:'dropdown',trimDropdown:false,source:function (query, process){
+                var pid=$vm.module_list['item'][0];
+                var sql="with tb as (select distinct Item=S1 from [TABLE-"+pid+"]) select top 10 Item from tb where Item like '%'+@S1+'%' ";
+                $vm.read_record_auto({query:query,process:process,sql:sql,minLength:0});
+            }};
+            table.Rep={type:'dropdown',trimDropdown:false,source:function (query, process){
+                var pid=$vm.module_list['rep'][0];
+                var sql="with tb as (select distinct Item=S1 from [TABLE-"+pid+"]) select top 10 Item from tb where Item like '%'+@S1+'%' ";
+                $vm.read_record_auto({query:query,process:process,sql:sql,minLength:0});
+            }};
+        }
+        //-------------------------------------
+        $('#D__ID').on('load',function(){  _set_req(); _request_data();  })
+        //-------------------------------------
+        _after_change=function(record,column){
+            if(column=='Units' || column=='Unit_Cost'){
+                record.Total=0;
+                try{
+                    record.Total=(parseFloat(record.Units)*parseFloat(record.Unit_Cost)).toFixed(2);
+                    $('#excel__ID').handsontable('render');
+                }catch(e){}
+            }
+        };
+        //-------------------------------------
+        _before_submit=function(record,dbv){
+            dbv.DT1=record.Order_Date;
+            dbv.S1=record.Item;
+            dbv.S2=record.Rep;
+            dbv.S3=record.Region;
+            dbv.V1=record.Total;
+            dbv.V2=record.Units;
+            dbv.V3=record.Unit_Cost;
+            return true;
+        };
+        //-------------------------------------
+    }
+</script>
+<style>
+    VmInclude:__BASE__/vmiis/Common-Code/style/default.css
+</style>

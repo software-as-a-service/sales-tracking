@@ -1,0 +1,56 @@
+<section>
+    <div id=toolbar__ID>
+        <a id=back__ID>Back</a><span class=tab__ID></span><span id=name__ID></span>
+    </div>
+    <div style='clear:left;'>
+        <div class='nav__ID'>
+            <span>Sales</span>
+            <ul>
+                <li data-name=sales>Sales</li>
+            </ul>
+            <br>
+            <span>Setup</span>
+            <ul>
+                <li data-name=region>Region</li>
+                <li data-name=rep>Rep</li>
+                <li data-name=item>Item</li>
+            </ul>
+            <br>
+            <br>
+            <br>
+        </div>
+        <div class='nav__ID'>
+            <span>Query</span>
+            <ul>
+                <li data-name=query_sales_total_monthl>Sales total monthly</li>
+            </ul>
+            <br>
+        </div>
+        <div class='nav__ID'>
+            <span>Chart</span>
+            <ul>
+                <li data-name=chart_sales_total_monthl>Sales total monthly</li>
+            </ul>
+            <br>
+        </div>
+    </div>
+    <div style='padding:30px;font-size:9px;color:#888;width:300px'>
+        How to make a record? Click 'Sales', click 'New', fill information and click 'Save'.
+    </div>
+</section>
+<script>
+    function F__ID(){
+        //---------------------------------------------
+        var content_slot=$vm.root_layout_content_slot;
+        VmInclude:__BASE__/vmiis/Common-Code/navigation/navigation.js
+        VmInclude:__BASE__/vmiis/Common-Code/style/ease-in-out.js
+        //---------------------------------------------
+        $('#D__ID').on('load',function(){
+            _set_permissions();
+        });
+        //---------------------------------------------
+    }
+</script>
+<style>
+    VmInclude:__BASE__/vmiis/Common-Code/navigation/navigation.css
+</style>
